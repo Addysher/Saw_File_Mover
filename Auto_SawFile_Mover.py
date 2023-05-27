@@ -6,8 +6,8 @@ import time
 import configparser
 import datetime
 
-version = "1.0.0"
-timer = 30 # Set the timer to 30 seconds
+version = "1.1.20"
+timer = 300 # Set the timer to 30 seconds
 
 class App:
     def __init__(self, master):
@@ -50,6 +50,12 @@ class App:
         self.auto_start_timer = timer
         self.update_timer()
 
+        # Load the settings file
+        self.settings = configparser.ConfigParser()
+        self.load_settings()
+        # Add in a Log File System
+        self.log_file()
+
         # Add label to show the status
         self.label_status = tk.Label(master, text="Status: Idle")
         self.label_status.grid(row=4, column=0, columnspan=4)
@@ -82,6 +88,24 @@ class App:
     def save_settings(self):
         with open('settings.ini', 'w') as configfile:
             self.settings.write(configfile)
+
+    # Create a Logging File everyday to keep track of the files moved
+    def log_file(self):
+        # If folder does not exist, create it
+        if not os.path.exists("Logs"):
+            os.makedirs("Logs")
+
+        # Get the current date
+        now = datetime.datetime.now()
+        date = now.strftime("%Y-%m-%d")
+
+        # Create a new log file
+        self.log = open(f"Logs/{date}.txt", "a+") # a+ means append and create if not exist
+        self.log.write(f"Log File for {date}\n")
+        self.log.write("Source Folder: " + self.entry_source.get() + "\n")
+        self.log.write("Target Folder: " + self.entry_target.get() + "\n")
+        self.log.write("--------------------------------------------------\n")
+        self.log.close()
 
     def update_timer(self):
         # Update the label to show the remaining time
@@ -131,6 +155,11 @@ class App:
                 file_list = os.listdir(source_folder)
             except FileNotFoundError:
                 # DEBUG: print("1. No files found in source folder")
+                # Add logging to log file
+                date = datetime.datetime.now().strftime("%Y-%m-%d")
+                self.log = open(f"Logs/{date}.txt", "a+")
+                self.log.write(f"{datetime.datetime.now().strftime('%H:%M:%S')} - No files found in source folder\n")
+                self.log.close()
                 self.label_status.configure(text="Status: Awaiting new files") # Update the status label
                 self.auto_start_timer = timer # Reset the timer
                 self.update_timer()
@@ -138,6 +167,11 @@ class App:
 
             if not file_list:
                 # DEBUG: print("2. No files found in source folder")
+                # add logging to log file
+                date = datetime.datetime.now().strftime("%Y-%m-%d")
+                self.log = open(f"Logs/{date}.txt", "a+")
+                self.log.write(f"{datetime.datetime.now().strftime('%H:%M:%S')} - No files found in source folder\n")
+                self.log.close()
                 self.label_status.configure(text="Status: Awaiting new files") # Update the status label
                 self.auto_start_timer = timer # Reset the timer
                 self.update_timer()
@@ -153,6 +187,11 @@ class App:
                             newFolder = os.path.join(target_folder, newFolderName)
                             shutil.move(filePath, os.path.join(newFolder, file))
                             # DEBUG: print(f"Moved file to EXISTING: {file} to {newFolder}")
+                            #Add logging to log file
+                            date = datetime.datetime.now().strftime("%Y-%m-%d")
+                            self.log = open(f"Logs/{date}.txt", "a+")
+                            self.log.write(f"{datetime.datetime.now().strftime('%H:%M:%S')} - Moved file to EXISTING: {file} to {newFolder}\n")
+                            self.log.close()
                             newFolderName = ""
                             break
                         else:
@@ -170,21 +209,41 @@ class App:
                             shutil.move(os.path.join(newFolder, file), source_folder)
                     except Exception as e:
                         # DEBUG: print(f"Error moving file: {filePath}")
+                        # Add logging to log file
+                        date = datetime.datetime.now().strftime("%Y-%m-%d")
+                        self.log = open(f"Logs/{date}.txt", "a+")
+                        self.log.write(f"{datetime.datetime.now().strftime('%H:%M:%S')} - Error moving file: {filePath}\n")
+                        self.log.close()
                         self.label_status.configure(text=f"Status: Error moving file") # update the status label
             if newFolderCreated:
                 try:
                     shutil.move(newFolder, os.path.join(target_folder, newFolderName))
                     # DEBUG: print(f"Moved folder to target: {os.path.join(target_folder, newFolderName)}")
+                    # Add logging to log file
+                    date = datetime.datetime.now().strftime("%Y-%m-%d")
+                    self.log = open(f"Logs/{date}.txt", "a+")
+                    self.log.write(f"{datetime.datetime.now().strftime('%H:%M:%S')} - Moved folder to target: {os.path.join(target_folder, newFolderName)}\n")
+                    self.log.close()
                     newFolderCreated = False
                     newFolderName = ""
                 except Exception as e:
                     # DEBUG: print(f"Error moving folder: {newFolder}")
+                    # Add logging to log file
+                    date = datetime.datetime.now().strftime("%Y-%m-%d")
+                    self.log = open(f"Logs/{date}.txt", "a+")
+                    self.log.write(f"{datetime.datetime.now().strftime('%H:%M:%S')} - Error moving folder: {newFolder}\n")
+                    self.log.close()
                     self.label_status.configure(text=f"Status: Error moving folder") # update the status label
 
     def stop_batch_file(self):
         self.stop_flag = True # Set the stop flag to True
         self.label_status.configure(text="Status: Stopped for 10 mins") # Update the status label
-        self.auto_start_timer = 300 # Reset the timer
+        # Add logging to log file
+        date = datetime.datetime.now().strftime("%Y-%m-%d")
+        self.log = open(f"Logs/{date}.txt", "a+")
+        self.log.write(f"{datetime.datetime.now().strftime('%H:%M:%S')} - Stopped for 10 mins\n")
+        self.log.close()
+        self.auto_start_timer = 600 # Reset the timer
         # DEBUG: print("Stopping batch file")
 
 root = tk.Tk()
