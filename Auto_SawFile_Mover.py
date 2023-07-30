@@ -6,7 +6,7 @@ import time
 import configparser
 import datetime
 
-version = "1.1.20"
+version = "1.2.10"
 timer = 300 # Set the timer to 30 seconds
 
 class App:
@@ -65,7 +65,7 @@ class App:
         self.label_warning.grid(row=5, column=0, columnspan=4)
 
         # Add a label to show who made this
-        self.label_made_by = tk.Label(master, text="Powered by: Saw Dust and Unicorn Tears")
+        self.label_made_by = tk.Label(master, text="Designed by: Addysher Tech")
         self.label_made_by.grid(row=6, column=0, columnspan=4)
 
         self.stop_flag = False
